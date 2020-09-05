@@ -43,7 +43,7 @@ source .\uppyyl-env\Scripts\activate
 To install the Uppyyl Simulator directly from GitHub, run the following command:
 
 ```
-python3.8 -m pip install -e git://github.com/s-lehmann/uppyyl-simulator.git#egg=uppyyl-simulator
+python3.8 -m pip install -e git://github.com/S-Lehmann/uppyyl-simulator.git#egg=uppyyl-simulator
 ```
 
 To install the project from a local directory instead, run:
