@@ -6,10 +6,6 @@ GRAMMAR_BASE_PATH           	  = ./uppyyl_simulator/grammars
 PARSER_BASE_PATH            	  = ./uppyyl_simulator/backend/ast/parsers/generated
 UPPAAL_C_PARSER_GRAMMAR           = $(GRAMMAR_BASE_PATH)/uppaal_c_language.ebnf
 UPPAAL_C_PARSER_CLASS             = $(PARSER_BASE_PATH)/uppaal_c_language_parser.py
-UPPAAL_QUERY_PARSER_GRAMMAR       = $(GRAMMAR_BASE_PATH)/uppaal_query_language.ebnf
-UPPAAL_QUERY_PARSER_CLASS         = $(PARSER_BASE_PATH)/uppaal_query_language_parser.py
-UPPAAL_TCP_MESSAGE_PARSER_GRAMMAR = $(GRAMMAR_BASE_PATH)/uppaal_tcp_message_language.ebnf
-UPPAAL_TCP_MESSAGE_PARSER_CLASS   = $(PARSER_BASE_PATH)/uppaal_tcp_message_language_parser.py
 
 init:
 	pip install -r requirements.txt
