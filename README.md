@@ -81,7 +81,7 @@ make run_all_coverage
 
 * **Sascha Lehmann** - *Initial work* - [S-Lehmann](https://github.com/S-Lehmann)
 
-See also the list of [contributors](https://github.com/slehmann/uppyyl-simulator/contributors) who participated in this project.
+See also the list of [contributors](https://github.com/S-Lehmann/uppyyl-simulator/contributors) who participated in this project.
 
 ## License
 
