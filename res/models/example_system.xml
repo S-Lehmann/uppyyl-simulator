@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+
+// Clocks
+clock T_GLOBAL;
+clock t1, t2;
+
+// Channels
+chan ch_bin;
+broadcast chan ch_br;
+urgent chan ch_ur_bin;
+
+// Variables
+int x = 0;
+bool b = true;
+struct {
+    int a;
+    bool b;
+} s;
+int arr_1d[2] = {1, 2};
+int arr_2d[2][2] = {{1, 2}, {3, 4}};
+
+// Functions
+int add(int a, int b) {
+    return a+b;
+}
+
+int complex_func(int a, bool b) {
+    int i;
+    for (i = 0; i&lt;10; i++) {
+        a++;
+        a -= 1;
+        b = !b;
+    }
+    while (i&gt;0) {
+        a += 1;
+        i--;
+    }
+    if (a &gt; 20) {
+        return 0;
+    } else {
+        return a;
+    }
+}</declaration>
+	<template>
+		<name x="5" y="5">T1</name>
+		<declaration>// Place local declarations here.</declaration>
+		<location id="id0" x="-34" y="17">
+			<name x="-68" y="-17">Loc_Ch_Ur_Bin</name>
+		</location>
+		<location id="id1" x="153" y="-42">
+			<name x="170" y="-51">B</name>
+			<urgent/>
+		</location>
+		<location id="id2" x="-212" y="-42">
+			<name x="-238" y="-51">A</name>
+			<committed/>
+		</location>
+		<location id="id3" x="-34" y="136">
+			<name x="-68" y="152">Loc_Ch_Br</name>
+		</location>
+		<location id="id4" x="-34" y="76">
+			<name x="-68" y="93">Loc_Ch_Bin</name>
+		</location>
+		<init ref="id2"/>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id1"/>
+			<nail x="153" y="17"/>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id0"/>
+			<label kind="synchronisation" x="-161" y="0">ch_ur_bin?</label>
+			<nail x="-212" y="17"/>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id2"/>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id1"/>
+			<nail x="153" y="136"/>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id1"/>
+			<nail x="153" y="76"/>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id3"/>
+			<label kind="synchronisation" x="-144" y="119">ch_br?</label>
+			<nail x="-212" y="136"/>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id4"/>
+			<label kind="synchronisation" x="-144" y="59">ch_bin?</label>
+			<nail x="-212" y="76"/>
+		</transition>
+	</template>
+	<template>
+		<name>T2</name>
+		<location id="id5" x="-34" y="135">
+			<name x="-77" y="152">Loc_No_Ch_2</name>
+		</location>
+		<location id="id6" x="-34" y="17">
+			<name x="-68" y="-17">Loc_Ch_Ur_Bin</name>
+		</location>
+		<location id="id7" x="153" y="-42">
+			<name x="170" y="-51">B</name>
+			<urgent/>
+		</location>
+		<location id="id8" x="-212" y="-42">
+			<name x="-238" y="-51">A</name>
+			<committed/>
+		</location>
+		<location id="id9" x="-34" y="76">
+			<name x="-68" y="93">Loc_No_Ch</name>
+			<label kind="invariant" x="-68" y="51">t1 &lt;= 10</label>
+		</location>
+		<location id="id10" x="-34" y="255">
+			<name x="-68" y="271">Loc_Ch_Br</name>
+		</location>
+		<location id="id11" x="-34" y="195">
+			<name x="-68" y="212">Loc_Ch_Bin</name>
+		</location>
+		<init ref="id8"/>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id8"/>
+			<label kind="assignment" x="-194" y="-153">x = add(x,x),
+x = complex_func(x, b)</label>
+			<nail x="153" y="-153"/>
+			<nail x="-212" y="-153"/>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id7"/>
+			<nail x="153" y="135"/>
+		</transition>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id5"/>
+			<label kind="guard" x="-161" y="118">t1 - t2 &lt;= 2</label>
+			<nail x="-212" y="135"/>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id7"/>
+			<nail x="153" y="17"/>
+		</transition>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id6"/>
+			<label kind="synchronisation" x="-161" y="0">ch_ur_bin!</label>
+			<nail x="-212" y="17"/>
+		</transition>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id8"/>
+			<label kind="guard" x="25" y="-102">x &lt;= 10</label>
+			<label kind="assignment" x="-161" y="-102">t1=0,
+t2=0,
+x+=1</label>
+			<nail x="153" y="-102"/>
+			<nail x="-212" y="-102"/>
+		</transition>
+		<transition>
+			<source ref="id9"/>
+			<target ref="id7"/>
+			<nail x="153" y="76"/>
+		</transition>
+		<transition>
+			<source ref="id10"/>
+			<target ref="id7"/>
+			<nail x="153" y="255"/>
+		</transition>
+		<transition>
+			<source ref="id11"/>
+			<target ref="id7"/>
+			<nail x="153" y="195"/>
+		</transition>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id9"/>
+			<label kind="select" x="-161" y="76">y : int[0,1]</label>
+			<label kind="guard" x="-161" y="59">t1 &gt;= 0</label>
+			<nail x="-212" y="76"/>
+		</transition>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id10"/>
+			<label kind="synchronisation" x="-144" y="238">ch_br!</label>
+			<nail x="-212" y="255"/>
+		</transition>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id11"/>
+			<label kind="synchronisation" x="-144" y="178">ch_bin!</label>
+			<nail x="-212" y="195"/>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+P1_1 = T1();
+P1_2 = T1();
+P2 = T2();
+
+// List one or more processes to be composed into a system.
+system P1_1, P1_2, P2;
+    </system>
+	<queries>
+	</queries>
+</nta>

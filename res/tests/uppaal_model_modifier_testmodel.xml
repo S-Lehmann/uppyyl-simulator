@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>// Global declaration
+bool bool_val1 = true, bool_val2 = false;
+int v1=0, v2=0;
+clock t;
+broadcast chan ch;</declaration>
+	<template>
+		<name x="32" y="16">A_Tmpl</name>
+		<parameter>int a, bool &amp;b_val, broadcast chan &amp;channel</parameter>
+		<declaration>// Local declaration
+clock x;
+int v;</declaration>
+		<location id="id0" x="221" y="-93">
+			<name x="187" y="-127">Unreach_Reset</name>
+			<label kind="invariant" x="211" y="-76">t&lt;=1</label>
+		</location>
+		<location id="id1" x="221" y="93">
+			<name x="187" y="59">Deadlock</name>
+		</location>
+		<location id="id2" x="221" y="187">
+			<name x="211" y="153">L2</name>
+			<committed/>
+		</location>
+		<location id="id3" x="221" y="-8">
+			<name x="187" y="-42">Unreach_Guard</name>
+			<label kind="invariant" x="204" y="8">t&lt;=1</label>
+		</location>
+		<location id="id4" x="93" y="93">
+			<name x="83" y="59">L1</name>
+			<label kind="invariant" x="42" y="68">t&lt;=2</label>
+		</location>
+		<init ref="id4"/>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id0"/>
+			<label kind="assignment" x="111" y="0">t=2</label>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id1"/>
+			<label kind="guard" x="144" y="76">t&gt;=2</label>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id4"/>
+			<label kind="assignment" x="68" y="187">bool_val1 = false,
+v2 = v2+2</label>
+			<nail x="221" y="238"/>
+			<nail x="93" y="144"/>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id2"/>
+			<label kind="guard" x="144" y="119">t&gt;=2</label>
+			<label kind="synchronisation" x="111" y="123">ch!</label>
+			<label kind="assignment" x="170" y="136">v1 = v1+2</label>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id4"/>
+			<label kind="guard" x="17" y="144">t&gt;=2</label>
+			<nail x="25" y="144"/>
+			<nail x="25" y="93"/>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id3"/>
+			<label kind="guard" x="144" y="34">t&gt;=2</label>
+		</transition>
+	</template>
+	<template>
+		<name x="32" y="16">B_Tmpl</name>
+		<declaration>clock w;</declaration>
+		<location id="id5" x="93" y="68">
+		</location>
+		<init ref="id5"/>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id5"/>
+			<label kind="synchronisation" x="76" y="-17">ch?</label>
+			<nail x="136" y="0"/>
+			<nail x="42" y="0"/>
+		</transition>
+	</template>
+	<system>int sys_decl_int;
+
+A1 = A_Tmpl(1+2, bool_val1, ch);
+A2 = A_Tmpl(3+4, bool_val2, ch);
+
+bool sys_decl_bool;
+
+B1 = B_Tmpl();
+B2 = B_Tmpl();
+
+chan sys_decl_chan;
+
+system A1, A2, B1, B2;</system>
+	<queries>
+		<query>
+			<formula>
+			</formula>
+			<comment>971204, Kim G. Larsen, Fredrik Larsson, Paul Pettersson &amp; Arne Skou,
+     at Fairmont Hotel, San Francisco, USA.
+971208, Paul, finalized, in the air between San Francisco and London.
+011015, Paul, added deadlock and livness properties.
+			</comment>
+		</query>
+		<query>
+			<formula>A[] not (Door1.open and Door2.open)
+			</formula>
+			<comment>Mutex: The two doors are never open at the same time.
+			</comment>
+		</query>
+		<query>
+			<formula>A[] (Door1.opening imply User1.w&lt;=31) and 
+    (Door2.opening imply User2.w&lt;=31)
+			</formula>
+			<comment>Bounded Liveness: A door will open within 31 seconds.
+			</comment>
+		</query>
+		<query>
+			<formula>E&lt;&gt; Door1.open
+			</formula>
+			<comment>Door 1 can open.
+			</comment>
+		</query>
+		<query>
+			<formula>E&lt;&gt; Door2.open
+			</formula>
+			<comment>Door 2 can open.
+			</comment>
+		</query>
+		<query>
+			<formula>Door1.wait --&gt; Door1.open
+			</formula>
+			<comment>Liveness: Whenever a button is pushed, the corresponding door will eventually open.
+			</comment>
+		</query>
+		<query>
+			<formula>Door2.wait --&gt; Door2.open
+			</formula>
+			<comment>
+			</comment>
+		</query>
+		<query>
+			<formula>A[] not deadlock
+			</formula>
+			<comment>The system is deadlock-free.
+			</comment>
+		</query>
+	</queries>
+</nta>

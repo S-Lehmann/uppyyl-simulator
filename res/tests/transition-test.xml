@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+clock T_GLOBAL;
+clock t1, t2;
+int x = 0;
+
+chan ch_bin;
+broadcast chan ch_br;
+urgent chan ch_ur_bin;</declaration>
+	<template>
+		<name x="5" y="5">T1</name>
+		<declaration>// Place local declarations here.</declaration>
+		<location id="id0" x="-25" y="-51">
+			<name x="-59" y="-85">Loc_Ch_Ur_Bin</name>
+		</location>
+		<location id="id1" x="85" y="-51">
+			<name x="75" y="-85">B</name>
+		</location>
+		<location id="id2" x="-25" y="-102">
+			<name x="-51" y="-136">Loc_Ch_Br</name>
+		</location>
+		<location id="id3" x="-25" y="-178">
+			<name x="-59" y="-212">Loc_Ch_Bin</name>
+		</location>
+		<location id="id4" x="-136" y="-51">
+			<name x="-146" y="-85">A</name>
+		</location>
+		<init ref="id4"/>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id1"/>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id0"/>
+			<label kind="synchronisation" x="-110" y="-51">ch_ur_bin?</label>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id4"/>
+			<nail x="85" y="17"/>
+			<nail x="-136" y="17"/>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id1"/>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id1"/>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id2"/>
+			<label kind="synchronisation" x="-93" y="-102">ch_br?</label>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id3"/>
+			<label kind="synchronisation" x="-119" y="-136">ch_bin?</label>
+		</transition>
+	</template>
+	<template>
+		<name>T2</name>
+		<location id="id5" x="-25" y="119">
+			<name x="-68" y="136">Loc_No_Ch_2</name>
+		</location>
+		<location id="id6" x="-25" y="-51">
+			<name x="-59" y="-85">Loc_Ch_Ur_Bin</name>
+		</location>
+		<location id="id7" x="153" y="-51">
+			<name x="143" y="-85">B</name>
+			<urgent/>
+		</location>
+		<location id="id8" x="-212" y="-51">
+			<name x="-222" y="-85">A</name>
+			<committed/>
+		</location>
+		<location id="id9" x="-25" y="25">
+			<name x="-59" y="42">Loc_No_Ch</name>
+			<label kind="invariant" x="-51" y="-8">t1 &lt;= 10</label>
+		</location>
+		<location id="id10" x="-25" y="-119">
+			<name x="-51" y="-153">Loc_Ch_Br</name>
+		</location>
+		<location id="id11" x="-25" y="-178">
+			<name x="-59" y="-212">Loc_Ch_Bin</name>
+		</location>
+		<init ref="id8"/>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id7"/>
+			<nail x="85" y="119"/>
+		</transition>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id5"/>
+			<label kind="guard" x="-110" y="68">t1 - t2 &lt;= 2</label>
+			<nail x="-153" y="119"/>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id7"/>
+		</transition>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id6"/>
+			<label kind="synchronisation" x="-110" y="-51">ch_ur_bin!</label>
+		</transition>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id8"/>
+			<label kind="guard" x="68" y="153">x &lt;= 10</label>
+			<label kind="assignment" x="-204" y="119">t1=0,
+t2=0,
+x+=1</label>
+			<nail x="153" y="170"/>
+			<nail x="-212" y="170"/>
+		</transition>
+		<transition>
+			<source ref="id9"/>
+			<target ref="id7"/>
+			<nail x="85" y="25"/>
+		</transition>
+		<transition>
+			<source ref="id10"/>
+			<target ref="id7"/>
+			<nail x="85" y="-119"/>
+		</transition>
+		<transition>
+			<source ref="id11"/>
+			<target ref="id7"/>
+			<nail x="93" y="-178"/>
+		</transition>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id9"/>
+			<label kind="select" x="-153" y="25">y : int[0,1]</label>
+			<label kind="guard" x="-161" y="8">t1 &gt;= 0</label>
+			<nail x="-161" y="25"/>
+		</transition>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id10"/>
+			<label kind="synchronisation" x="-136" y="-136">ch_br!</label>
+			<nail x="-144" y="-119"/>
+		</transition>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id11"/>
+			<label kind="synchronisation" x="-136" y="-178">ch_bin!</label>
+			<nail x="-161" y="-178"/>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+P1 = T1();
+P1_2 = T1();
+P2 = T2();
+
+// List one or more processes to be composed into a system.
+system P1, P1_2, P2;
+    </system>
+	<queries>
+	</queries>
+</nta>

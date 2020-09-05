@@ -1,0 +1,330 @@
+################################################################################
+### Uppaal C Language Grammar in EBNF                                        ###
+################################################################################
+### Based on the BNF grammar described in the official Uppaal documentation. ###
+### Adapted By: Sascha Lehmann, Hamburg University of Technology             ###
+################################################################################
+
+################################################################################
+### Hints:                                                                   ###
+### - astType:`...` is used to inject an AST type entry into the AST         ###
+### - ','.{p}+ is used to match multiple occurrences of p separated by ','   ###
+################################################################################
+
+@@grammar        :: UppaalCLanguage         # Grammar base name for generated parser classes
+@@comments       :: /\/\*[\s\S]*?\*\//      # Regular expression identifying block comment sections to exclude them ("[\s\S]" instead of "." to work around missing DOTALL flag)
+@@eol_comments   :: /\/\/([^\n]*?)$/        # Regular expression identifying end-of-line comments to exclude them
+@@ignorecase     :: False                   # Enable / Disable ignoring character case during parsing
+
+# List of strings the grammar should consider as keywords
+@@keyword        :: 'chan' 'clock' 'double' 'bool' 'int' 'commit' 'const'
+                    'urgent' 'broadcast' 'init' 'process' 'state' 'invariant'
+                    'location' 'guard' 'sync' 'assign' 'system' 'trans'
+                    # 'deadlock' 'and' 'or' 'not' 'imply' 'true' 'false'
+                    'for' 'forall' 'exists' 'while' 'do' 'if' 'else'
+                    'return' 'typedef' 'struct' 'rate' 'before_update'
+                    'after_update' 'meta' 'priority' 'progress' 'scalar'
+                    'select' 'void' 'default'
+                    'switch' 'case' 'continue' 'break' 'enum'
+
+@@left_recursion :: False                   # Enable / Disable left recursion
+@@namechars      :: '_-.'                   # A list of (non-alphanumeric) characters considered part of names when "nameguard" is used
+@@nameguard      :: False                   # Avoid matching tokens when next character is alphanumeric or in "namechars" list
+@@parseinfo      :: False                   # Add additional information to ASTs / Nodes (rule, pos, end_pos, line, end_line)
+@@whitespace     :: /\s+/                   # Regular expression for white-space ignored by parser
+
+_  = /[ \t\r\n]*/;
+__ = /[ \t\r\n]+/;
+
+UppaalDeclaration = _ decls:Declarations astType:`UppaalDeclaration` $ ;
+UppaalSystemDeclaration = _ decls:{!('system') (Declaration | Instantiation)}* systemDecl:System astType:`UppaalSystemDeclaration` $ ;
+
+# LineComment       = _ comment:/\/\/(.*?)$/ _ astType:`LineComment`;
+# BlockComment      = _ comment:/\/\*[\s\S]*?\*\// _ astType:`BlockComment`;
+# Comment           = LineComment
+#                   | BlockComment;
+
+Declarations      = {Declaration}*;
+Declaration       = VariableDecls
+                  | TypeDecls
+                  | Function
+               #  | Comment
+                  | ChanPriority;
+VariableDecls     = type:Type varData:','.{VariableIDInit}+ ';' astType:`VariableDecls`;
+VariableIDInit    = varName:ID arrayDecl:{ArrayDecl}* [ '=' initData:Initialiser ] astType:`VariableID`;
+VariableID        = varName:ID arrayDecl:{ArrayDecl}* astType:`VariableID`;
+Initialiser       = Expression
+                  | InitialiserArray;
+InitialiserArray  = '{' vals:','.{Initialiser}+ '}' astType:`InitialiserArray`;
+TypeDecls         = 'typedef' type:Type names:','.{VariableID}+ ';' astType:`TypeDecls`;
+
+Type              = prefixes:{Prefix}* typeId:TypeId astType:`Type`;
+Prefix            = 'urgent' | 'broadcast' | 'meta' | 'const';
+BoundedIntType     = 'int' '[' lower:Expression ',' upper:Expression ']' astType:`BoundedIntType`;
+ScalarType        = 'scalar' '[' expr:Expression ']' astType:`ScalarType`;
+StructType        = 'struct' '{' fields:{FieldDecl}+ '}' astType:`StructType`;
+TypeId            = BoundedIntType
+                  | ScalarType
+                  | StructType
+                  | CustomType ;
+CustomType        = _ type:TypeID astType:`CustomType`;
+FieldDecl         = type:Type varData:','.{VariableID}+ ';' astType:`FieldDecl`;
+ArrayDecl         = '[' @:Expression ']'
+                  | '[' @:Type ']';
+
+Function          = type:Type name:ID '(' params:Parameters ')' body:Block astType:`FunctionDef`;
+Block             = '{' decls:Declarations stmts:{Statement}* '}' astType:`StatementBlock`;
+Statement         = Block
+                  | EmptyStatement
+                  | ExprStatement
+                  | ForLoop
+                  | Iteration
+                  | WhileLoop
+                  | DoWhileLoop
+                  | IfStatement
+                  | ReturnStatement;
+EmptyStatement    = ';' astType:`EmptyStatement`;
+ExprStatement     = expr:Expression ';' astType:`ExprStatement`;
+ForLoop           = 'for' '(' init:Expression ';' cond:Expression ';' after:Expression ')' body:Statement astType:`ForLoop`;
+Iteration         = 'for' '(' name:ID ':' type:Type ')' body:Statement astType:`Iteration`;
+WhileLoop         = 'while' '(' cond:Expression ')' body:Statement astType:`WhileLoop`;
+DoWhileLoop       = 'do' body:Statement 'while' '(' cond:Expression ')' ';' astType:`DoWhileLoop`;
+IfStatement       = 'if' '(' cond:Expression ')' thenBody:Statement [ 'else' elseBody:Statement ] astType:`IfStatement`;
+ReturnStatement   = 'return' [ expr:Expression ] ';' astType:`ReturnStatement`;
+
+Parameters        = ','.{Parameter}*;
+Parameter         = type:Type [ isRef:'&' ] varData:VariableID astType:`Parameter`;
+
+System            = 'system' processNames:'<'.{','.{ID}+}+ ';' astType:`System`;
+Process           = name:ID '(' args:Arguments ')' astType:`Process`;
+Instantiation     = instanceName:ID [ '(' params:Parameters  ')' ] ('='|':=') templateName:ID '(' args:Arguments ')' ';' astType:`Instantiation`;
+ProgressDecl      = 'progress' '{' exprs:{ @:Expression ';' }* '}' astType:`ProgressDecl`;
+
+# TODO: Revise Gant Charts
+NonTypeId         = ID; # TODO
+GanttDecl         = 'gantt {' GanttDef '}' astType:`GanttDecl`;
+GanttDef          = ' '
+                  | GanttDef NonTypeId GanttArgs ':' GanttExprList ';' astType:`GanttDef`;
+GanttArgs         = ' '
+                  | '(' GanttDeclSelect ')' astType:`GanttArgs`;
+GanttEntryElem    = id:ID ':' type:Type astType:`GanttEntryElem`;
+GanttDeclSelect   = selects:','.{GanttEntryElem}+ astType:`GanttDeclSelect`;
+GanttExprList     = ','.{GanttExpr}+ astType:`GanttExprList`;
+GantExprSingle    = cond:Expression '->' intExpr:Expression astType:`GantExprSingle`;
+GanttExprSelect   = 'for (' entrySelect:GanttEntrySelect ')' cond:Expression '->' intExpr:Expression astType:`GanttExprSelect`;
+GanttExpr         = GantExprSingle
+                  | GanttExprSelect;
+GanttEntrySelect  = selects:','.{GanttEntryElem}+ astType:`GanttEntrySelect`;
+
+ChanPriority      = 'chan' 'priority' channels:'<'.{','.{(ChanExpr | 'default')}+}+ ';' astType:`ChanPriority`;
+ChanExpr          = name:ID indices:{VariableIndex}* astType:`ChanExpr`;
+ChanDefault       = 'default' astType:`ChanDefault`;
+
+VariableIndex     = '[' @:Expression ']';
+Variable          = name:ID indices:{VariableIndex}* astType:`Variable`; # Note: "indices" transformed into (multiple) "ArrayAccessExpr" in semantics class
+
+Integer           = _ val:/[-+]?[0-9]+/ astType:`Integer`;
+Double            = _ val:/[-+]?[0-9]*\.[0-9]+([Ee][-+]?[0-9]+)?/ astType:`Double`;
+Boolean           = _ val:('true' | 'false') astType:`Boolean`;
+Number            = Double | Integer;
+Value             = Number | Boolean;
+
+ID                = _ !(ReservedKeywords /[^a-zA-Z0-9_]+/) @:/[a-zA-Z_][a-zA-Z0-9_]*/;
+TypeID            = _ !(ReservedNonTypeKeywords /[^a-zA-Z0-9_]+/) @:/[a-zA-Z_][a-zA-Z0-9_]*/;
+
+BracketExpr          = '(' expr:Expression ')' astType:`BracketExpr`;
+DerivativeExpr       = expr:Variable "'" astType:`DerivativeExpr`;
+PostIncrAssignExpr   = expr:(Number | Variable | BracketExpr) '++' astType:`PostIncrAssignExpr`;
+PostDecrAssignExpr   = expr:(Number | Variable | BracketExpr) '--' astType:`PostDecrAssignExpr`;
+PreIncrAssignExpr    = '++' expr:(Number | Variable | Expression) astType:`PreIncrAssignExpr`;
+PreDecrAssignExpr    = '--' expr:(Number | Variable | Expression) astType:`PreDecrAssignExpr`;
+AssignExpr           = left:Variable op:Assign right:Expression astType:`AssignExpr`;
+FuncCallExpr         = funcName:ID '(' args:Arguments ')' astType:`FuncCallExpr`;
+
+UnaryExpr            = op:Unary expr:Expression astType:`UnaryExpr`;
+BinaryExpr           = left:BasicExpression op:Binary right:Expression astType:`BinaryExpr`;
+TernaryExpr          = left:BasicExpression '?' middle:Expression ':' right:Expression op:`Ternary` astType:`TernaryExpr`;
+# Temporary fix: cond -> left , thenExpr -> middle, elseExpr -> right, and "op" introduced to allow binary ast rotation
+
+Deadlock             = 'deadlock' astType:`DeadlockExpr`;
+# ArrayAccessExpr      = expr:Expression '[' arrayIndexExpr:Expression ']' astType:`ArrayAccessExpr`;
+# DotExpr              = left:BasicExpression '.' right:Expression astType:`DotExpr`;
+
+BasicExpression   = BracketExpr
+                  | ForAll
+                  | Exists
+                  | Sum
+                  | DerivativeExpr
+                  | PostIncrAssignExpr | PostDecrAssignExpr
+                  | PreIncrAssignExpr | PreDecrAssignExpr
+                  | UnaryExpr
+                  | AssignExpr
+                  | FuncCallExpr
+                  | Deadlock
+                  | Value
+                  | Variable;
+
+Expression        = TernaryExpr | BinaryExpr | BasicExpression ;
+
+Arguments         = ','.{Expression}*;
+Assign            = '='     @:`Assign`
+                  | ':='    @:`Assign`
+                  | '+='    @:`AddAssign`
+                  | '-='    @:`SubAssign`
+                  | '*='    @:`MultAssign`
+                  | '/='    @:`DivAssign`
+                  | '%='    @:`ModAssign`
+                  | '|='    @:`BitOrAssign`
+                  | '&='    @:`BitAndAssign`
+                  | '^='    @:`BitXorAssign`
+                  | '<<='   @:`LShiftAssign`
+                  | '>>='   @:`RShiftAssign`
+                  ;
+Unary             = '!'     @:`LogNot`
+                  | 'not'   @:`LogNot`
+                  | '+'     @:`Plus`
+                  | '-'     @:`Minus`
+                  ;
+Binary            =
+                  | '<<'    @:`LShift`
+                  | '>>'    @:`RShift`
+                  | '&&'    @:`LogAnd`
+                  | 'and'   @:`LogAnd`
+                  | '||'    @:`LogOr`
+                  | 'or'    @:`LogOr`
+                  | 'imply' @:`LogImply`
+                  | '&'     @:`BitAnd`
+                  | '|'     @:`BitOr`
+                  | '^'     @:`BitXor`
+                  | '<?'    @:`Minimum`
+                  | '>?'    @:`Maximum`
+                  | '<='    @:`LessEqual`
+                  | '<'     @:`LessThan`
+                  | '=='    @:`Equal`
+                  | '!='    @:`NotEqual`
+                  | '>='    @:`GreaterEqual`
+                  | '>'     @:`GreaterThan`
+                  | '+'     @:`Add`
+                  | '-'     @:`Sub`
+                  | '*'     @:`Mult`
+                  | '/'     @:`Div`
+                  | '%'     @:`Mod`
+                  | '.'     @:`Dot`
+                  ;
+
+ForAll            = 'forall' '(' varName:ID ':' type:Type ')' expr:Expression astType:`ForAllExpr`;
+Exists            = 'exists' '(' varName:ID ':' type:Type ')' expr:Expression astType:`ExistsExpr`;
+Sum               = 'sum'    '(' varName:ID ':' type:Type ')' expr:Expression astType:`SumExpr`;
+
+
+ReservedTypeKeywords    = 'chan' | 'clock' | 'double' | 'bool' | 'int' | 'scalar' | 'struct' | 'void' | 'typedef';
+ReservedQualKeywords    = 'commit' | 'const' | 'urgent' | 'broadcast' | 'meta' | 'init';
+ReservedExprKeywords    = 'and' | 'or' | 'not' | 'imply' | 'true' | 'false' | 'forall' | 'exists';
+ReservedStmtKeywords    = 'while' | 'do' | 'if' | 'else' | 'return' | 'for';
+ReservedOtherKeywords   = 'deadlock' | 'process' | 'state'
+                        | 'invariant' | 'guard' | 'sync' | 'assign' | 'select' | 'before_update' | 'after_update'
+                        | 'location' | 'system' | 'trans' | 'rate' | 'priority' | 'progress' | 'default';
+ReservedFutureKeywords  = 'switch' | 'case' | 'continue' | 'break' | 'enum';
+ReservedNonTypeKeywords = >ReservedQualKeywords
+                        | >ReservedExprKeywords
+                        | >ReservedStmtKeywords
+                        | >ReservedOtherKeywords
+                        | >ReservedFutureKeywords;
+ReservedKeywords        = >ReservedQualKeywords
+                        | >ReservedExprKeywords
+                        | >ReservedStmtKeywords
+                        | >ReservedOtherKeywords
+                        | >ReservedFutureKeywords
+                        | >ReservedTypeKeywords;
+
+### Locations ###
+Invariant         = expr:Expression astType:`Invariant`;
+Invariants        = Invariant; # Required to split by "&&" into list of invariants in the semantics object
+
+### Edges ###
+Select            = name:ID ':' type:Type astType:`Select`;
+Selects           = ','.{Select}*;
+Guard             = expr:Expression astType:`Guard`;
+Guards            = Guard; # Required to split by "&&" into list of guards in the semantics object
+Sync              = channel:Variable op:('!' | '?') astType:`Sync`;
+Update            = expr:Expression astType:`Update`;
+Updates           = ','.{Update}*;
+
+###########
+# Queries #
+###########
+# Redefinition of "BasicExpression" is required to handle "-->" (leads to) correctly.
+# e.g. "a --> b" could be interpreted as "a leads to b" or "a-- greater than b".
+# Assignments are not allowed in queries though and therefore need to be removed.
+# Alternatively, a new grammar using "#include" of the UppaalCLanguage grammar and "@override" could be used.
+
+QBracketExpr          = '(' expr:QExpression ')' astType:`BracketExpr`;
+QFuncCallExpr         = funcName:ID '(' args:Arguments ')' astType:`FuncCallExpr`;
+
+QUnaryExpr            = op:Unary expr:QExpression astType:`UnaryExpr`;
+QBinaryExpr           = left:QBasicExpression op:Binary right:QExpression astType:`BinaryExpr`;
+QTernaryExpr          = left:QBasicExpression '?' middle:QExpression ':' right:QExpression op:`Ternary` astType:`TernaryExpr`;
+# Temporary fix: cond -> left , thenExpr -> middle, elseExpr -> right, and "op" introduced to allow binary ast rotation
+
+QDeadlock             = 'deadlock' astType:`DeadlockExpr`;
+
+QForAll            = 'forall' '(' varName:ID ':' type:Type ')' expr:QExpression astType:`ForAllExpr`;
+QExists            = 'exists' '(' varName:ID ':' type:Type ')' expr:QExpression astType:`ExistsExpr`;
+QSum               = 'sum'    '(' varName:ID ':' type:Type ')' expr:QExpression astType:`SumExpr`;
+
+QBasicExpression   = QBracketExpr
+                   | QForAll
+                   | QExists
+                   | QSum
+                   | QUnaryExpr
+                   | QFuncCallExpr
+                   | QDeadlock
+                   | Value
+                   | Variable;
+
+QExpression        = QTernaryExpr | QBinaryExpr | QBasicExpression ;
+
+### Predicate ###
+Predicate         = expr:QExpression astType:`Predicate`;
+
+### Path quantifiers ###
+PropAll           = 'A' prop:PropPathSpecQuant astType:`PropAll`;
+PropExists        = 'E' prop:PropPathSpecQuant astType:`PropExists`;
+PropLeadsTo       = left:Predicate '-->' right:Predicate astType:`PropLeadsTo`;
+PropPathQuant     = PropAll | PropExists | PropLeadsTo;
+
+### Path-specific quantifiers ###
+PropGlobally      = '[]' prop:Predicate astType:`PropGlobally`;
+PropFinally       = '<>' prop:Predicate astType:`PropFinally`;
+PropUntil         = left:Predicate 'U' right:Predicate astType:`PropUntil`;
+PropPathSpecQuant = PropGlobally | PropFinally | PropUntil;
+
+### Supremum / Infimum Formula ###
+SupInf            = type:('inf'|'sup') ['{' predicate:Predicate '}'] ':' exprs:','.{QExpression}+ astType:`PropValBounds`;
+
+### SMC Formula ###
+TimeBound         = [var:( Clock | '#' )] '<=' upperBound:CONST astType:`PropTimeBound`;
+Sim               = 'simulate' runCount:CONST '[' timeBound:TimeBound ']' '{' obsVars:(','.{QExpression}+) '}' astType:`PropSMCSim`;
+SimAcceptRuns     = simulate:Sim ':' acceptBound:CONST ':' '(' predicate:Predicate ')' astType:`PropSMCSimAcceptRuns`;
+
+ProbEstimate      = 'Pr' '[' timeBound:TimeBound ']' '(' prop:PropPathSpecQuant ')' astType:`PropSMCProbEstimate`;
+HypothesisTest    = prop:ProbEstimate op:( '<=' | '>=' ) probVal:PROB astType:`PropSMCHypothesisTest`;
+ProbCompare       = left:ProbEstimate op:( '<=' | '>=' ) right:ProbEstimate astType:`PropSMCProbCompare`;
+ValueEstimate     = 'E[' timeBound:TimeBound ';' runCount:CONST ']' '(' op:('min'|'max') ':' expr:QExpression ')' astType:`PropSMCValueEstimate`;
+
+### Properties ###
+UppaalTCTLProp    = PropPathQuant
+                  | SupInf;
+UppaalSMCProp     = SimAcceptRuns
+                  | Sim
+                  | ProbCompare
+                  | HypothesisTest
+                  | ProbEstimate
+                  | ValueEstimate;
+
+UppaalProp        = UppaalTCTLProp | UppaalSMCProp;
+
+
+Clock             = ID;
+CONST             = Value;
+PROB              = Value;
