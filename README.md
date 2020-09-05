@@ -43,7 +43,7 @@ source .\uppyyl-env\Scripts\activate
 To install the Uppyyl Simulator directly from GitHub, run the following command:
 
 ```
-python3.8 -m pip install -e git://github.com/S-Lehmann/uppyyl-simulator.git#egg=uppyyl-simulator
+python3.8 -m pip install -e git+https://github.com/S-Lehmann/uppyyl-simulator.git#egg=uppyyl-simulator
 ```
 
 To install the project from a local directory instead, run:
@@ -56,7 +56,13 @@ python3.8 -m pip install -e path_to_project_root
 
 The project can both be used as a package for other projects, or as a standalone simulator using the provided CLI tool.
 
-To run the standalone CLI tool, execute the following command:
+To run the standalone CLI tool, first switch to the project directory, e.g., in your virtual environment:
+
+```
+cd uppyyl-env/src/uppyyl-simulator
+```
+
+Then, execute the following command:
 
 ```
 python3.8 -m uppyyl_simulator
