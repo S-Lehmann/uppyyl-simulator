@@ -8,8 +8,8 @@ from setuptools import setup
 
 version = re.search(
     r'^__version__\s*=\s*"(.*)"',
-    open('uppyyl_simulator/uppyyl_simulator.py').read(),
-    re.M
+    open("uppyyl_simulator/uppyyl_simulator.py").read(),
+    re.M,
 ).group(1)
 
 with open("README.md", "rb") as f:
@@ -20,8 +20,8 @@ setup(
     packages=["uppyyl_simulator"],
     entry_points={
         "console_scripts": [
-            'uppyyl_simulator = uppyyl_simulator.uppyyl_simulator:main',
-            'uppyyl-simulator = uppyyl_simulator.uppyyl_simulator:main',
+            "uppyyl_simulator = uppyyl_simulator.uppyyl_simulator:main",
+            "uppyyl-simulator = uppyyl_simulator.uppyyl_simulator:main",
         ]
     },
     version=version,
@@ -30,16 +30,16 @@ setup(
     author="Sascha Lehmann",
     author_email="s.lehmann@tuhh.de",
     project_urls={
-        'Affiliation': 'https://www.tuhh.de/sts',
+        "Affiliation": "https://www.tuhh.de/sts",
     },
     url="",
     install_requires=[
-        'numpy==1.18.1',
-        'pytest==5.3.5',
-        'pytest-subtests==0.3.0',
-        'TatSu==5.5.0',
-        'lxml~=4.5.0',
-        'colorama~=0.4.3',
-        'coverage==5.2.1',
+        "numpy==1.22.4",
+        "pytest==7.1.2",
+        "pytest-subtests==0.8.0",
+        "TatSu==5.6.1",
+        "lxml==4.8.0",
+        "colorama==0.4.4",
+        "coverage==6.4",
     ],
 )
