@@ -7,19 +7,15 @@ from lxml import etree
 
 import uppyyl_simulator.backend.models.ta.nta as nta
 from uppyyl_simulator.backend.data_structures.ast.ast_code_element import (
-    apply_func_to_ast
+    apply_func_to_ast,
 )
-from uppyyl_simulator.backend.helper.helper import (
-    unique_id
-)
-from uppyyl_simulator.backend.models.base.query import (
-    Query
-)
+from uppyyl_simulator.backend.helper.helper import unique_id
+from uppyyl_simulator.backend.models.base.query import Query
 from uppyyl_simulator.backend.ast.parsers.generated.uppaal_c_language_parser import (
-    UppaalCLanguageParser
+    UppaalCLanguageParser,
 )
 from uppyyl_simulator.backend.ast.parsers.uppaal_c_language_semantics import (
-    UppaalCLanguageSemantics
+    UppaalCLanguageSemantics,
 )
 
 
@@ -37,7 +33,7 @@ def uppaal_xml_to_dict(system_xml_str):
     """
     system = OrderedDict()
 
-    system_xml_str = system_xml_str.encode('utf-8')
+    system_xml_str = system_xml_str.encode("utf-8")
     nta_element = etree.fromstring(system_xml_str)
 
     # Parse global declaration
@@ -95,7 +91,7 @@ def uppaal_xml_to_dict(system_xml_str):
             location["id"] = location_element.attrib["id"]
             location["pos"] = {
                 "x": int(location_element.attrib["x"]),
-                "y": int(location_element.attrib["y"])
+                "y": int(location_element.attrib["y"]),
             }
 
             # Parse location name
@@ -107,17 +103,17 @@ def uppaal_xml_to_dict(system_xml_str):
                 label["id"] = unique_id("label")
                 label["pos"] = {
                     "x": int(location_name_element.attrib["x"]),
-                    "y": int(location_name_element.attrib["y"])
+                    "y": int(location_name_element.attrib["y"]),
                 }
                 location["name"] = location_name_element.text
                 location["name_label"] = label
 
             # Parse urgent / committed
             urgent_element = location_element.find("urgent")
-            location["urgent"] = (urgent_element is not None)
+            location["urgent"] = urgent_element is not None
 
             committed_element = location_element.find("committed")
-            location["committed"] = (committed_element is not None)
+            location["committed"] = committed_element is not None
 
             # Parse location labels
             location["invariant"] = None
@@ -128,7 +124,7 @@ def uppaal_xml_to_dict(system_xml_str):
                 label["id"] = unique_id("label")
                 label["pos"] = {
                     "x": int(label_element.attrib["x"]),
-                    "y": int(label_element.attrib["y"])
+                    "y": int(label_element.attrib["y"]),
                 }
 
                 if label_element.attrib["kind"] == "invariant":
@@ -176,7 +172,7 @@ def uppaal_xml_to_dict(system_xml_str):
                 label["id"] = unique_id("label")
                 label["pos"] = {
                     "x": int(label_element.attrib["x"]),
-                    "y": int(label_element.attrib["y"])
+                    "y": int(label_element.attrib["y"]),
                 }
 
                 if label_element.attrib["kind"] == "guard":
@@ -200,7 +196,7 @@ def uppaal_xml_to_dict(system_xml_str):
                 nail["id"] = unique_id("nail")
                 nail["pos"] = {
                     "x": int(nail_element.attrib["x"]),
-                    "y": int(nail_element.attrib["y"])
+                    "y": int(nail_element.attrib["y"]),
                 }
                 edge["nails"].append(nail)
 
@@ -220,11 +216,15 @@ def uppaal_xml_to_dict(system_xml_str):
             query["id"] = None
 
             formula_element = query_element.find("formula")
-            if formula_element is not None:
-                query["formula"] = formula_element.text.strip()
+            if formula_element is None or formula_element.text is None:
+                # ignore queries without formula
+                continue
+
+            query["formula"] = formula_element.text.strip()
+            query["comment"] = ""
 
             comment_element = query_element.find("comment")
-            if comment_element is not None:
+            if comment_element is not None and comment_element.text is not None:
                 query["comment"] = comment_element.text.strip()
 
             system["queries"].append(query)
@@ -262,7 +262,9 @@ def uppaal_dict_to_system(system_data):
         template = system.new_template(name, id_)
 
         if template_data["parameters"] != "":
-            parameter_asts = uppaal_c_parser.parse(template_data["parameters"], rule_name='Parameters')
+            parameter_asts = uppaal_c_parser.parse(
+                template_data["parameters"], rule_name="Parameters"
+            )
             for parameter_ast in parameter_asts:
                 template.new_parameter(parameter_ast)
 
@@ -300,11 +302,15 @@ def uppaal_dict_to_system(system_data):
                 location.view["name_label"] = location_data["name_label"].copy()
 
             if location_data["invariant"]:
-                invariants = uppaal_c_parser.parse(location_data["invariant"], rule_name='Invariants')
+                invariants = uppaal_c_parser.parse(
+                    location_data["invariant"], rule_name="Invariants"
+                )
                 for inv in invariants:
                     location.new_invariant(inv)
             if location_data["invariant_label"]:
-                location.view["invariant_label"] = location_data["invariant_label"].copy()
+                location.view["invariant_label"] = location_data[
+                    "invariant_label"
+                ].copy()
 
             if location_data["urgent"]:
                 location.set_urgent(True)
@@ -327,7 +333,7 @@ def uppaal_dict_to_system(system_data):
 
             # Add guards
             if edge_data["guard"]:
-                guards = uppaal_c_parser.parse(edge_data["guard"], rule_name='Guards')
+                guards = uppaal_c_parser.parse(edge_data["guard"], rule_name="Guards")
                 for guard in guards:
                     if len(apply_func_to_ast(guard, get_clocks)[1]) > 0:
                         edge.new_clock_guard(guard)
@@ -338,7 +344,9 @@ def uppaal_dict_to_system(system_data):
 
             # Add updates
             if edge_data["update"]:
-                updates = uppaal_c_parser.parse(edge_data["update"], rule_name='Updates')
+                updates = uppaal_c_parser.parse(
+                    edge_data["update"], rule_name="Updates"
+                )
                 for update in updates:
                     if len(apply_func_to_ast(update, get_clocks)[1]) > 0:
                         edge.new_reset(update)
@@ -420,7 +428,9 @@ def uppaal_system_to_dict(system):
         # Parse template name
         template_data["name"] = template.name
         # Parse template parameters
-        template_data["parameters"] = ", ".join(list(map(lambda p: p.text, template.parameters)))
+        template_data["parameters"] = ", ".join(
+            list(map(lambda p: p.text, template.parameters))
+        )
         # Parse local template declaration
         template_data["declaration"] = template.declaration.text
 
@@ -442,8 +452,12 @@ def uppaal_system_to_dict(system):
             location_data["committed"] = location.committed
 
             # Parse location labels
-            location_data["invariant"] = " && ".join(list(map(lambda inv: inv.text, location.invariants)))
-            location_data["invariant_label"] = deepcopy(location.view["invariant_label"])
+            location_data["invariant"] = " && ".join(
+                list(map(lambda inv: inv.text, location.invariants))
+            )
+            location_data["invariant_label"] = deepcopy(
+                location.view["invariant_label"]
+            )
 
             template_data["locations"].append(location_data)
 
@@ -462,15 +476,23 @@ def uppaal_system_to_dict(system):
             edge_data["target_loc_id"] = edge.target.id
 
             # Parse edge labels
-            edge_data["guard"] = " && ".join(list(map(lambda clock_grd: clock_grd.text, edge.clock_guards)) + list(
-                map(lambda variable_grd: variable_grd.text, edge.variable_guards)))
+            edge_data["guard"] = " && ".join(
+                list(map(lambda clock_grd: clock_grd.text, edge.clock_guards))
+                + list(
+                    map(lambda variable_grd: variable_grd.text, edge.variable_guards)
+                )
+            )
             edge_data["guard_label"] = deepcopy(edge.view["guard_label"])
             edge_data["update"] = ",\n".join(
-                list(map(lambda updt: updt.text, edge.updates)) + list(map(lambda rst: rst.text, edge.resets)))
+                list(map(lambda updt: updt.text, edge.updates))
+                + list(map(lambda rst: rst.text, edge.resets))
+            )
             edge_data["update_label"] = deepcopy(edge.view["update_label"])
             edge_data["synchronisation"] = edge.sync.text if edge.sync else None
             edge_data["sync_label"] = deepcopy(edge.view["sync_label"])
-            edge_data["select"] = ",\n".join(list(map(lambda sel: sel.text, edge.selects)))
+            edge_data["select"] = ",\n".join(
+                list(map(lambda sel: sel.text, edge.selects))
+            )
             edge_data["select_label"] = deepcopy(edge.view["select_label"])
 
             # Parse edge nails
@@ -535,13 +557,21 @@ def uppaal_dict_to_xml(system_data):
         # Parse locations #
         ###################
         for location_data in template_data["locations"]:
-            location_element = etree.SubElement(template_element, "location", id=location_data["id"],
-                                                x=str(location_data["pos"]["x"]), y=str(location_data["pos"]["y"]))
+            location_element = etree.SubElement(
+                template_element,
+                "location",
+                id=location_data["id"],
+                x=str(location_data["pos"]["x"]),
+                y=str(location_data["pos"]["y"]),
+            )
 
             if location_data["name"] and location_data["name_label"]:
-                location_name_element = etree.SubElement(location_element, "name",
-                                                         x=str(location_data["name_label"]["pos"]["x"]),
-                                                         y=str(location_data["name_label"]["pos"]["y"]))
+                location_name_element = etree.SubElement(
+                    location_element,
+                    "name",
+                    x=str(location_data["name_label"]["pos"]["x"]),
+                    y=str(location_data["name_label"]["pos"]["y"]),
+                )
                 location_name_element.text = location_data["name"]
 
             if location_data["urgent"]:
@@ -551,9 +581,13 @@ def uppaal_dict_to_xml(system_data):
                 etree.SubElement(location_element, "committed")
 
             if location_data["invariant"] and location_data["invariant_label"]:
-                invariant_label_element = etree.SubElement(location_element, "label", kind="invariant",
-                                                           x=str(location_data["invariant_label"]["pos"]["x"]),
-                                                           y=str(location_data["invariant_label"]["pos"]["y"]))
+                invariant_label_element = etree.SubElement(
+                    location_element,
+                    "label",
+                    kind="invariant",
+                    x=str(location_data["invariant_label"]["pos"]["x"]),
+                    y=str(location_data["invariant_label"]["pos"]["y"]),
+                )
                 invariant_label_element.text = location_data["invariant"]
 
         # Parse initial location
@@ -571,35 +605,56 @@ def uppaal_dict_to_xml(system_data):
 
             # Guard
             if edge_data["guard"] and edge_data["guard_label"]:
-                guard_label_element = etree.SubElement(edge_element, "label", kind="guard",
-                                                       x=str(edge_data["guard_label"]["pos"]["x"]),
-                                                       y=str(edge_data["guard_label"]["pos"]["y"]))
+                guard_label_element = etree.SubElement(
+                    edge_element,
+                    "label",
+                    kind="guard",
+                    x=str(edge_data["guard_label"]["pos"]["x"]),
+                    y=str(edge_data["guard_label"]["pos"]["y"]),
+                )
                 guard_label_element.text = edge_data["guard"]
 
             # Update / Assignment
             if edge_data["update"] and edge_data["update_label"]:
-                update_label_element = etree.SubElement(edge_element, "label", kind="assignment",
-                                                        x=str(edge_data["update_label"]["pos"]["x"]),
-                                                        y=str(edge_data["update_label"]["pos"]["y"]))
+                update_label_element = etree.SubElement(
+                    edge_element,
+                    "label",
+                    kind="assignment",
+                    x=str(edge_data["update_label"]["pos"]["x"]),
+                    y=str(edge_data["update_label"]["pos"]["y"]),
+                )
                 update_label_element.text = edge_data["update"]
 
             # Synchronisation
             if edge_data["synchronisation"] and edge_data["sync_label"]:
-                sync_label_element = etree.SubElement(edge_element, "label", kind="synchronisation",
-                                                      x=str(edge_data["sync_label"]["pos"]["x"]),
-                                                      y=str(edge_data["sync_label"]["pos"]["y"]))
+                sync_label_element = etree.SubElement(
+                    edge_element,
+                    "label",
+                    kind="synchronisation",
+                    x=str(edge_data["sync_label"]["pos"]["x"]),
+                    y=str(edge_data["sync_label"]["pos"]["y"]),
+                )
                 sync_label_element.text = edge_data["synchronisation"]
 
             # Select
             if edge_data["select"] and edge_data["select_label"]:
-                select_label_element = etree.SubElement(edge_element, "label", kind="select",
-                                                        x=str(edge_data["select_label"]["pos"]["x"]),
-                                                        y=str(edge_data["select_label"]["pos"]["y"]))
+                select_label_element = etree.SubElement(
+                    edge_element,
+                    "label",
+                    kind="select",
+                    x=str(edge_data["select_label"]["pos"]["x"]),
+                    y=str(edge_data["select_label"]["pos"]["y"]),
+                )
                 select_label_element.text = edge_data["select"]
 
             # Parse edge nails
             for nail_data in edge_data["nails"]:
-                etree.SubElement(template_element, "nail", x=str(nail_data["pos"]["x"]), y=str(nail_data["pos"]["y"]))
+                etree.SubElement(
+                    template_element,
+                    "nail",
+                    x=str(nail_data["pos"]["x"]),
+                    y=str(nail_data["pos"]["y"]),
+                )
 
     # Parse system declaration
     system_declaration_element = etree.SubElement(nta_element, "system")
@@ -622,9 +677,14 @@ def uppaal_dict_to_xml(system_data):
     ##############################
     # Convert XML Tree to string #
     ##############################
-    system_xml_str = etree.tostring(nta_element, encoding='utf-8', method='xml', xml_declaration=True,
-                                    pretty_print=True)
-    system_xml_str = system_xml_str.decode('utf-8')
+    system_xml_str = etree.tostring(
+        nta_element,
+        encoding="utf-8",
+        method="xml",
+        xml_declaration=True,
+        pretty_print=True,
+    )
+    system_xml_str = system_xml_str.decode("utf-8")
     system_xml_str = system_xml_str.replace("encoding='utf8'", "encoding='utf-8'")
     return system_xml_str
 
