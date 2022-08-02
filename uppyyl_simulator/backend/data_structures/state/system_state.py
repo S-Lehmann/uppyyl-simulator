@@ -65,7 +65,7 @@ class InstanceScopeAccessor(collections.abc.MutableMapping):
         elif key in variable_scope:
             return variable_scope[key]
         else:
-            tmpl_name = self.system_state.instance_data[self.inst_name]
+            tmpl_name = self.system_state.instance_data[self.inst_name]["template_name"]
             tmpl = self.system_state.system.get_template_by_name(tmpl_name)
             active_loc = self.system_state.location_state[self.inst_name]
             for loc in tmpl.locations.values():
@@ -504,7 +504,10 @@ class SystemState:
                     instance_accessor = InstanceScopeAccessor(inst_name=inst_name, system_state=self)
                     self.instance_scope_accessors[inst_name] = instance_accessor
 
-                    self.instance_data[inst_name] = tmpl_name
+                    self.instance_data[inst_name] = {
+                        "template_name": tmpl_name,
+                        "args": list(map(lambda arg: arg.name if isinstance(arg, UppaalVariable) else arg, inst_args))
+                    }
 
                 else:  # If process/instance is instantiated via ranged parameters (using "system Tmpl;")
                     tmpl_name = inst_name
@@ -527,7 +530,10 @@ class SystemState:
                         instance_accessor = InstanceScopeAccessor(inst_name=inst_name, system_state=self)
                         self.instance_scope_accessors[inst_name] = instance_accessor
 
-                        self.instance_data[inst_name] = tmpl_name
+                        self.instance_data[inst_name] = {
+                            "template_name": tmpl_name,
+                            "args": []
+                        }
 
                     else:  # Otherwise add instance scope for all combinations of ranged integer / scalar parameters
                         param_clazzes = []
@@ -557,7 +563,12 @@ class SystemState:
                             if template_decl_ast is not None:
                                 c_evaluator.eval_ast(template_decl_ast, self)
 
-                            self.instance_data[sub_inst_name] = tmpl_name
+                            self.instance_data[sub_inst_name] = {
+                                "template_name": tmpl_name,
+                                "args": list(
+                                    map(lambda arg: arg.name if isinstance(arg, UppaalVariable) else arg, inst_args))
+                            }
+                            # self.instance_data[sub_inst_name] = tmpl_name
 
                         instance_accessor = MultiInstanceAccessor(tmpl_name=inst_name,
                                                                   param_count=len(param_clazzes))
@@ -571,7 +582,8 @@ class SystemState:
     def _init_location_state_from_system(self, system):
         """Initializes the location state from a system instance."""
         self.location_state = {}
-        for inst_name, tmpl_name in self.instance_data.items():
+        for inst_name, inst_data in self.instance_data.items():
+            tmpl_name = inst_data["template_name"]
             self.location_state[inst_name] = system.get_template_by_name(tmpl_name).init_loc
 
     def init_from_system(self, system):
@@ -694,6 +706,21 @@ class SystemState:
         copy_obj.program_state = self._copy_program_state()
         copy_obj.location_state = copy.copy(self.location_state)
         copy_obj.dbm_state = self.dbm_state.copy()
+
+        # Copy instance data
+        copy_obj.instance_data = self.instance_data
+
+        # Copy instance scope accessors
+        copy_obj.instance_scope_accessors = {}
+        for accessor_name, accessor in self.instance_scope_accessors.items():
+            accessor_copy = accessor.copy()
+            if isinstance(accessor_copy, InstanceScopeAccessor):
+                accessor_copy.system_state = copy_obj
+            copy_obj.instance_scope_accessors[accessor_name] = accessor_copy
+
+        # Set instance access data
+        copy_obj.active_instance_name = None
+        copy_obj.access_instance_scopes = False
 
         return copy_obj
 

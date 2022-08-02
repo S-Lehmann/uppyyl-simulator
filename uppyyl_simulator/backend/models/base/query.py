@@ -93,7 +93,10 @@ class QueryFormula(ASTCodeElement):
         Returns:
             None
         """
-        self.ast = self.parser.parse(self.text, rule_name='UppaalProp', trace=False)
+        if not self.text:
+            self.ast = None
+        else:
+            self.ast = self.parser.parse(self.text, rule_name='UppaalProp', trace=False)
 
     def __str__(self):
         return f'QueryFormula(\n{self.text}\n)'

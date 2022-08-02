@@ -1,8 +1,6 @@
 import pprint
 import unittest
 
-from uppyyl_simulator.backend.ast.parsers.uppaal_xml_model_parser import uppaal_xml_to_system
-from uppyyl_simulator.backend.data_structures.state.system_state import SystemState
 from uppyyl_simulator.backend.models.ta.nta import (
     System
 )
@@ -63,17 +61,17 @@ class TestSystemFunctions(unittest.TestCase):
         with self.assertRaises(Exception):
             _tmpl = system.get_template_by_index(index=0)
 
-    def test_get_system_details(self):
-        with open(test_model_path) as file:
-            uppaal_test_model_str = file.read()
-        system_xml_str = uppaal_test_model_str
-        system = uppaal_xml_to_system(system_xml_str)
-
-        state = SystemState()
-        state.init_from_system(system)
-        _system_details = system.get_system_details(state=state)
-
-        # TODO: Assertions
+    # def test_get_system_details(self):
+    #     with open(test_model_path) as file:
+    #         uppaal_test_model_str = file.read()
+    #     system_xml_str = uppaal_test_model_str
+    #     system = uppaal_xml_to_system(system_xml_str)
+    #
+    #     state = SystemState()
+    #     state.init_from_system(system)
+    #     _system_details = system.get_system_details(state=state)
+    #
+    #     # TODO: Assertions
 
     def test_str(self):
         system = System()

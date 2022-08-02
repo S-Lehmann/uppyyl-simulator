@@ -359,7 +359,9 @@ def uppaal_dict_to_system(system_data):
             if edge_data["select_label"]:
                 edge.view["select_label"] = edge_data["select_label"].copy()
 
-            edge.view["nails"] = deepcopy(edge_data["nails"])
+            edge.view["nails"] = OrderedDict()
+            for nail in edge_data["nails"]:
+                edge.view["nails"][nail["id"]] = nail
 
     #################
     # Parse queries #
@@ -474,7 +476,7 @@ def uppaal_system_to_dict(system):
             edge_data["select_label"] = deepcopy(edge.view["select_label"])
 
             # Parse edge nails
-            edge_data["nails"] = deepcopy(edge.view["nails"])
+            edge_data["nails"] = list(edge.view["nails"].values())
 
             template_data["edges"].append(edge_data)
 
@@ -599,7 +601,7 @@ def uppaal_dict_to_xml(system_data):
 
             # Parse edge nails
             for nail_data in edge_data["nails"]:
-                etree.SubElement(template_element, "nail", x=str(nail_data["pos"]["x"]), y=str(nail_data["pos"]["y"]))
+                etree.SubElement(edge_element, "nail", x=str(nail_data["pos"]["x"]), y=str(nail_data["pos"]["y"]))
 
     # Parse system declaration
     system_declaration_element = etree.SubElement(nta_element, "system")

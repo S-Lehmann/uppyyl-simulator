@@ -157,6 +157,32 @@ class Simulator:
         self.init_system_state = self.generate_init_system_state()
         self.init_simulator()
 
+    def get_system_details(self):
+        """Get system details (number of location, edges, instance, and clocks).
+
+        Returns:
+            The system details.
+        """
+        location_count = 0
+        edge_count = 0
+
+        instance_count = len(self.system_state.instance_data)
+        clock_count = len(self.system_state.dbm_state.clocks[1:])
+        for inst_name, inst_data in self.system_state.instance_data.items():
+            tmpl_name = inst_data["template_name"]
+            tmpl = self.system.get_template_by_name(tmpl_name)
+            location_count += len(tmpl.locations)
+            edge_count += len(tmpl.edges)
+
+        system_details = {
+            "location_count": location_count,
+            "edge_count": edge_count,
+            "instance_count": instance_count,
+            "clock_count": clock_count
+        }
+
+        return system_details
+
     def generate_init_system_state(self):
         """Generates the initial system state defined by the declaration and system declaration.
 

@@ -66,7 +66,7 @@ StructType        = 'struct' '{' fields:{FieldDecl}+ '}' astType:`StructType`;
 TypeId            = BoundedIntType
                   | ScalarType
                   | StructType
-                  | CustomType ;
+                  | CustomType;
 CustomType        = _ type:TypeID astType:`CustomType`;
 FieldDecl         = type:Type varData:','.{VariableID}+ ';' astType:`FieldDecl`;
 ArrayDecl         = '[' @:Expression ']'

@@ -57,6 +57,8 @@ class Automaton(Graph):
         Returns:
             The declaration object.
         """
+        if decl is None:
+            decl = ""
         if isinstance(decl, str):
             decl = Declaration(decl)
         self.declaration = decl
@@ -245,7 +247,7 @@ class Automaton(Graph):
             self.set_declaration(other.declaration.copy())
 
         if other.init_loc:
-            self.set_init_location(self.locations[assoc_data["loc_id_assocs"][other.init_loc.id]])
+            self.set_init_location(self.locations[assoc_data["node_id_assocs"][other.init_loc.id]])
 
     def copy(self):
         """Copies the Automaton instance.
