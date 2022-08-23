@@ -62,11 +62,13 @@ class ASTCodeElement(abc.ABC):
         Returns:
             None
         """
-        self.text = text
-        if text == "":
-            self.ast = None
-        else:
-            self.update_ast()
+        self.text = text if (text is not None) else ""
+        self.update_ast()
+
+        # if text == "":
+        #     self.ast = None
+        # else:
+        #     self.update_ast()
 
     def set_ast(self, ast):
         """Sets the AST dict, and update the AST text string accordingly.
@@ -136,17 +138,18 @@ def apply_funcs_to_ast(ast, funcs):
         The adapted AST.
     """
 
-    def helper_func(ast_):
+    def helper_func(ast_, _acc):
         """Helper function which applies the given functions to the AST.
 
         Args:
             ast_: The AST instance.
+            _acc: A list of values accumulated during application.
 
         Returns:
             The adapted AST.
         """
         for func in funcs:
-            func(ast_)
+            ast_ = func(ast_, _acc)
         return ast_
 
     return apply_func_to_ast(ast, helper_func)

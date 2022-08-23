@@ -65,7 +65,13 @@ class Declaration(ASTCodeElement):
         Returns:
             None
         """
-        self.ast = self.parser.parse(self.text, rule_name='UppaalDeclaration', trace=False)
+        if not self.text:
+            self.ast = {
+                "astType": 'UppaalDeclaration',
+                "decls": []
+            }
+        else:
+            self.ast = self.parser.parse(self.text, rule_name='UppaalDeclaration', trace=False)
 
     def __str__(self):
         return f'Declaration(\n{self.text}\n)'

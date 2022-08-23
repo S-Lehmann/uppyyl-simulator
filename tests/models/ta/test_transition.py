@@ -3,7 +3,7 @@ import pprint
 import pytest
 
 from uppyyl_simulator.backend.data_structures.state.system_state import SystemState
-from uppyyl_simulator.backend.models.ta import Location, Edge
+from uppyyl_simulator.backend.models.ta.ta import Location, Edge
 from uppyyl_simulator.backend.models.ta.transition import Transition
 
 pp = pprint.PrettyPrinter(indent=4, compact=True)

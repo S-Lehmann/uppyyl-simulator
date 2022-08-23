@@ -284,7 +284,7 @@ class Location(basic_automaton.Location):
             copy_view_data: Choose whether the graphical view data should be copied as well.
         """
         super().assign_from(other, assign_ids=assign_ids)
-        self.invariants = map(lambda inv: inv.copy(), other.invariants)
+        self.invariants = list(map(lambda inv: inv.copy(), other.invariants))
         self.urgent = other.urgent
         self.committed = other.committed
 
@@ -525,18 +525,18 @@ class Edge(basic_automaton.Edge):
             copy_view_data: Choose whether the graphical view data should be copied as well.
         """
         super().assign_from(other)
-        self.clock_guards = map(lambda grd: grd.copy(), other.clock_guards)
-        self.variable_guards = map(lambda grd: grd.copy(), other.variable_guards)
-        self.updates = map(lambda updt: updt.copy(), other.updates)
-        self.resets = map(lambda rst: rst.copy(), other.resets)
+        self.clock_guards = list(map(lambda grd: grd.copy(), other.clock_guards))
+        self.variable_guards = list(map(lambda grd: grd.copy(), other.variable_guards))
+        self.updates = list(map(lambda updt: updt.copy(), other.updates))
+        self.resets = list(map(lambda rst: rst.copy(), other.resets))
         self.sync = other.sync.copy() if other.sync else None
-        self.selects = map(lambda sel: sel.copy(), other.selects)
+        self.selects = list(map(lambda sel: sel.copy(), other.selects))
 
         if copy_view_data:
             self.view = {"nails": OrderedDict()}
-            for nail_id in other.view["nails"]:
-                nail = {"id": unique_id("nail"), "pos": {"x": other.view["nails"][nail_id]["pos"]["x"],
-                                                         "y": other.view["nails"][nail_id]["pos"]["y"]}}
+            for other_nail_id, other_nail in other.view["nails"].items():
+                nail = {"id": unique_id("nail"), "pos": {"x": other.view["nails"][other_nail_id]["pos"]["x"],
+                                                         "y": other.view["nails"][other_nail_id]["pos"]["y"]}}
                 self.view["nails"][nail["id"]] = nail
 
             self.view["guard_label"] = {

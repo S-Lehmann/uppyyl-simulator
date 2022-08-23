@@ -11,7 +11,7 @@
 # the file is generated.
 
 
-from __future__ import generator_stop
+from __future__ import print_function, division, absolute_import, unicode_literals
 
 import sys
 
@@ -23,50 +23,50 @@ from tatsu.util import re, generic_main  # noqa
 
 
 KEYWORDS = {
-    'assign',
-    'clock',
-    'exists',
-    'sync',
-    'if',
-    'else',
-    'return',
-    'bool',
-    'typedef',
-    'before_update',
-    'system',
-    'process',
-    'int',
-    'state',
-    'forall',
-    'const',
-    'enum',
-    'location',
-    'chan',
-    'default',
-    'broadcast',
-    'guard',
-    'priority',
-    'double',
-    'rate',
-    'progress',
-    'while',
     'after_update',
-    'select',
-    'commit',
-    'scalar',
-    'for',
-    'continue',
-    'meta',
-    'invariant',
-    'struct',
+    'assign',
+    'before_update',
+    'bool',
     'break',
-    'switch',
-    'void',
+    'broadcast',
     'case',
-    'urgent',
-    'init',
+    'chan',
+    'clock',
+    'commit',
+    'const',
+    'continue',
+    'default',
     'do',
+    'double',
+    'else',
+    'enum',
+    'exists',
+    'for',
+    'forall',
+    'guard',
+    'if',
+    'init',
+    'int',
+    'invariant',
+    'location',
+    'meta',
+    'priority',
+    'process',
+    'progress',
+    'rate',
+    'return',
+    'scalar',
+    'select',
+    'state',
+    'struct',
+    'switch',
+    'sync',
+    'system',
     'trans',
+    'typedef',
+    'urgent',
+    'void',
+    'while',
 }  # type: ignore
 
 
@@ -82,7 +82,7 @@ class UppaalCLanguageBuffer(Buffer):
         namechars='_-.',
         **kwargs
     ):
-        super().__init__(
+        super(UppaalCLanguageBuffer, self).__init__(
             text,
             whitespace=whitespace,
             nameguard=nameguard,
@@ -106,12 +106,12 @@ class UppaalCLanguageParser(Parser):
         parseinfo=False,
         keywords=None,
         namechars='_-.',
-        tokenizercls=UppaalCLanguageBuffer,
+        buffer_class=UppaalCLanguageBuffer,
         **kwargs
     ):
         if keywords is None:
             keywords = KEYWORDS
-        super().__init__(
+        super(UppaalCLanguageParser, self).__init__(
             whitespace=whitespace,
             nameguard=nameguard,
             comments_re=comments_re,
@@ -121,7 +121,7 @@ class UppaalCLanguageParser(Parser):
             parseinfo=parseinfo,
             keywords=keywords,
             namechars=namechars,
-            tokenizercls=tokenizercls,
+            buffer_class=buffer_class,
             **kwargs
         )
 
@@ -160,7 +160,7 @@ class UppaalCLanguageParser(Parser):
                         self._Declaration_()
                     with self._option():
                         self._Instantiation_()
-                    self._error('expecting one of: Declaration Instantiation')
+                    self._error('no available options')
         self._closure(block1)
         self.name_last_node('decls')
         self._System_()
@@ -191,7 +191,7 @@ class UppaalCLanguageParser(Parser):
                 self._Function_()
             with self._option():
                 self._ChanPriority_()
-            self._error('expecting one of: ChanPriority Function Prefix Type TypeDecls TypeId VariableDecls chan typedef')
+            self._error('no available options')
 
     @tatsumasu()
     def _VariableDecls_(self):  # noqa
@@ -256,7 +256,7 @@ class UppaalCLanguageParser(Parser):
                 self._Expression_()
             with self._option():
                 self._InitialiserArray_()
-            self._error('expecting one of: ( ++ -- /[ \\t\\r\\n]*/ /[-+]?[0-9]*\\.[0-9]+([Ee][-+]?[0-9]+)?/ /[-+]?[0-9]+/ /[a-zA-Z_][a-zA-Z0-9_]*/ AssignExpr BasicExpression BinaryExpr Boolean BracketExpr Deadlock DerivativeExpr Double Exists Expression ForAll FuncCallExpr ID InitialiserArray Integer Number PostDecrAssignExpr PostIncrAssignExpr PreDecrAssignExpr PreIncrAssignExpr Sum TernaryExpr Unary UnaryExpr Value Variable _ deadlock false true {')
+            self._error('no available options')
 
     @tatsumasu()
     def _InitialiserArray_(self):  # noqa
@@ -325,7 +325,7 @@ class UppaalCLanguageParser(Parser):
                 self._token('meta')
             with self._option():
                 self._token('const')
-            self._error('expecting one of: broadcast const meta urgent')
+            self._error('no available options')
 
     @tatsumasu()
     def _BoundedIntType_(self):  # noqa
@@ -386,7 +386,7 @@ class UppaalCLanguageParser(Parser):
                 self._StructType_()
             with self._option():
                 self._CustomType_()
-            self._error('expecting one of: /[ \\t\\r\\n]*/ BoundedIntType CustomType ScalarType StructType TypeID _ int scalar struct')
+            self._error('no available options')
 
     @tatsumasu()
     def _CustomType_(self):  # noqa
@@ -433,7 +433,7 @@ class UppaalCLanguageParser(Parser):
                 self._Type_()
                 self.name_last_node('@')
                 self._token(']')
-            self._error('expecting one of: [')
+            self._error('no available options')
 
     @tatsumasu()
     def _Function_(self):  # noqa
@@ -493,7 +493,7 @@ class UppaalCLanguageParser(Parser):
                 self._IfStatement_()
             with self._option():
                 self._ReturnStatement_()
-            self._error('expecting one of: ; Block DoWhileLoop EmptyStatement ExprStatement Expression ForLoop IfStatement Iteration ReturnStatement WhileLoop do for if return while {')
+            self._error('no available options')
 
     @tatsumasu()
     def _EmptyStatement_(self):  # noqa
@@ -707,7 +707,7 @@ class UppaalCLanguageParser(Parser):
                     self._token('=')
                 with self._option():
                     self._token(':=')
-                self._error('expecting one of: := =')
+                self._error('no available options')
         self._ID_()
         self.name_last_node('templateName')
         self._token('(')
@@ -771,7 +771,7 @@ class UppaalCLanguageParser(Parser):
                 self._token(';')
                 self._constant('GanttDef')
                 self.name_last_node('astType')
-            self._error('expecting one of:   GanttDef')
+            self._error('no available options')
         self.ast._define(
             ['astType'],
             []
@@ -788,7 +788,7 @@ class UppaalCLanguageParser(Parser):
                 self._token(')')
                 self._constant('GanttArgs')
                 self.name_last_node('astType')
-            self._error('expecting one of:   (')
+            self._error('no available options')
         self.ast._define(
             ['astType'],
             []
@@ -880,7 +880,7 @@ class UppaalCLanguageParser(Parser):
                 self._GantExprSingle_()
             with self._option():
                 self._GanttExprSelect_()
-            self._error('expecting one of: ( ++ -- /[ \\t\\r\\n]*/ /[-+]?[0-9]*\\.[0-9]+([Ee][-+]?[0-9]+)?/ /[-+]?[0-9]+/ /[a-zA-Z_][a-zA-Z0-9_]*/ AssignExpr BasicExpression BinaryExpr Boolean BracketExpr Deadlock DerivativeExpr Double Exists Expression ForAll FuncCallExpr GantExprSingle GanttExprSelect ID Integer Number PostDecrAssignExpr PostIncrAssignExpr PreDecrAssignExpr PreIncrAssignExpr Sum TernaryExpr Unary UnaryExpr Value Variable _ deadlock false for ( true')
+            self._error('no available options')
 
     @tatsumasu()
     def _GanttEntrySelect_(self):  # noqa
@@ -919,7 +919,7 @@ class UppaalCLanguageParser(Parser):
                             self._ChanExpr_()
                         with self._option():
                             self._token('default')
-                        self._error('expecting one of: ChanExpr default')
+                        self._error('no available options')
             self._positive_gather(block2, sep2)
         self._positive_gather(block1, sep1)
         self.name_last_node('channels')
@@ -1013,7 +1013,7 @@ class UppaalCLanguageParser(Parser):
                     self._token('true')
                 with self._option():
                     self._token('false')
-                self._error('expecting one of: false true')
+                self._error('no available options')
         self.name_last_node('val')
         self._constant('Boolean')
         self.name_last_node('astType')
@@ -1029,7 +1029,7 @@ class UppaalCLanguageParser(Parser):
                 self._Double_()
             with self._option():
                 self._Integer_()
-            self._error('expecting one of: /[ \\t\\r\\n]*/ /[-+]?[0-9]*\\.[0-9]+([Ee][-+]?[0-9]+)?/ /[-+]?[0-9]+/ Double Integer _')
+            self._error('no available options')
 
     @tatsumasu()
     def _Value_(self):  # noqa
@@ -1038,7 +1038,7 @@ class UppaalCLanguageParser(Parser):
                 self._Number_()
             with self._option():
                 self._Boolean_()
-            self._error('expecting one of: /[ \\t\\r\\n]*/ /[-+]?[0-9]*\\.[0-9]+([Ee][-+]?[0-9]+)?/ /[-+]?[0-9]+/ Boolean Double Integer Number _ false true')
+            self._error('no available options')
 
     @tatsumasu()
     def _ID_(self):  # noqa
@@ -1095,7 +1095,7 @@ class UppaalCLanguageParser(Parser):
                     self._Variable_()
                 with self._option():
                     self._BracketExpr_()
-                self._error('expecting one of: BracketExpr Number Variable')
+                self._error('no available options')
         self.name_last_node('expr')
         self._token('++')
         self._constant('PostIncrAssignExpr')
@@ -1115,7 +1115,7 @@ class UppaalCLanguageParser(Parser):
                     self._Variable_()
                 with self._option():
                     self._BracketExpr_()
-                self._error('expecting one of: BracketExpr Number Variable')
+                self._error('no available options')
         self.name_last_node('expr')
         self._token('--')
         self._constant('PostDecrAssignExpr')
@@ -1136,7 +1136,7 @@ class UppaalCLanguageParser(Parser):
                     self._Variable_()
                 with self._option():
                     self._Expression_()
-                self._error('expecting one of: Expression Number Variable')
+                self._error('no available options')
         self.name_last_node('expr')
         self._constant('PreIncrAssignExpr')
         self.name_last_node('astType')
@@ -1156,7 +1156,7 @@ class UppaalCLanguageParser(Parser):
                     self._Variable_()
                 with self._option():
                     self._Expression_()
-                self._error('expecting one of: Expression Number Variable')
+                self._error('no available options')
         self.name_last_node('expr')
         self._constant('PreDecrAssignExpr')
         self.name_last_node('astType')
@@ -1285,7 +1285,7 @@ class UppaalCLanguageParser(Parser):
                 self._Value_()
             with self._option():
                 self._Variable_()
-            self._error('expecting one of: ! ( + ++ - -- /[ \\t\\r\\n]*/ /[-+]?[0-9]*\\.[0-9]+([Ee][-+]?[0-9]+)?/ /[-+]?[0-9]+/ /[a-zA-Z_][a-zA-Z0-9_]*/ AssignExpr Boolean BracketExpr Deadlock DerivativeExpr Double Exists ForAll FuncCallExpr ID Integer Number PostDecrAssignExpr PostIncrAssignExpr PreDecrAssignExpr PreIncrAssignExpr Sum Unary UnaryExpr Value Variable _ deadlock exists false forall not sum true')
+            self._error('no available options')
 
     @tatsumasu()
     def _Expression_(self):  # noqa
@@ -1296,7 +1296,7 @@ class UppaalCLanguageParser(Parser):
                 self._BinaryExpr_()
             with self._option():
                 self._BasicExpression_()
-            self._error('expecting one of: ! ( + ++ - -- /[ \\t\\r\\n]*/ /[-+]?[0-9]*\\.[0-9]+([Ee][-+]?[0-9]+)?/ /[-+]?[0-9]+/ /[a-zA-Z_][a-zA-Z0-9_]*/ AssignExpr BasicExpression BinaryExpr Boolean BracketExpr Deadlock DerivativeExpr Double Exists ForAll FuncCallExpr ID Integer Number PostDecrAssignExpr PostIncrAssignExpr PreDecrAssignExpr PreIncrAssignExpr Sum TernaryExpr Unary UnaryExpr Value Variable _ deadlock exists false forall not sum true')
+            self._error('no available options')
 
     @tatsumasu()
     def _Arguments_(self):  # noqa
@@ -1359,7 +1359,7 @@ class UppaalCLanguageParser(Parser):
                 self._token('>>=')
                 self._constant('RShiftAssign')
                 self.name_last_node('@')
-            self._error('expecting one of: %= &= *= += -= /= := <<= = >>= ^= |=')
+            self._error('no available options')
 
     @tatsumasu()
     def _Unary_(self):  # noqa
@@ -1380,7 +1380,7 @@ class UppaalCLanguageParser(Parser):
                 self._token('-')
                 self._constant('Minus')
                 self.name_last_node('@')
-            self._error('expecting one of: ! + - not')
+            self._error('no available options')
 
     @tatsumasu()
     def _Binary_(self):  # noqa
@@ -1481,7 +1481,7 @@ class UppaalCLanguageParser(Parser):
                 self._token('.')
                 self._constant('Dot')
                 self.name_last_node('@')
-            self._error('expecting one of: != % & && * + - . / < << <= <? == > >= >> >? ^ and imply or | ||')
+            self._error('no available options')
 
     @tatsumasu()
     def _ForAll_(self):  # noqa
@@ -1561,7 +1561,7 @@ class UppaalCLanguageParser(Parser):
                 self._token('void')
             with self._option():
                 self._token('typedef')
-            self._error('expecting one of: bool chan clock double int scalar struct typedef void')
+            self._error('no available options')
 
     @tatsumasu()
     def _ReservedQualKeywords_(self):  # noqa
@@ -1578,7 +1578,7 @@ class UppaalCLanguageParser(Parser):
                 self._token('meta')
             with self._option():
                 self._token('init')
-            self._error('expecting one of: broadcast commit const init meta urgent')
+            self._error('no available options')
 
     @tatsumasu()
     def _ReservedExprKeywords_(self):  # noqa
@@ -1599,7 +1599,7 @@ class UppaalCLanguageParser(Parser):
                 self._token('forall')
             with self._option():
                 self._token('exists')
-            self._error('expecting one of: and exists false forall imply not or true')
+            self._error('no available options')
 
     @tatsumasu()
     def _ReservedStmtKeywords_(self):  # noqa
@@ -1616,7 +1616,7 @@ class UppaalCLanguageParser(Parser):
                 self._token('return')
             with self._option():
                 self._token('for')
-            self._error('expecting one of: do else for if return while')
+            self._error('no available options')
 
     @tatsumasu()
     def _ReservedOtherKeywords_(self):  # noqa
@@ -1655,7 +1655,7 @@ class UppaalCLanguageParser(Parser):
                 self._token('progress')
             with self._option():
                 self._token('default')
-            self._error('expecting one of: after_update assign before_update deadlock default guard invariant location priority process progress rate select state sync system trans')
+            self._error('no available options')
 
     @tatsumasu()
     def _ReservedFutureKeywords_(self):  # noqa
@@ -1670,7 +1670,7 @@ class UppaalCLanguageParser(Parser):
                 self._token('break')
             with self._option():
                 self._token('enum')
-            self._error('expecting one of: break case continue enum switch')
+            self._error('no available options')
 
     @tatsumasu()
     def _ReservedNonTypeKeywords_(self):  # noqa
@@ -1689,7 +1689,7 @@ class UppaalCLanguageParser(Parser):
                         self._token('meta')
                     with self._option():
                         self._token('init')
-                    self._error('expecting one of: broadcast commit const init meta urgent')
+                    self._error('no available options')
             with self._option():
                 with self._choice():
                     with self._option():
@@ -1708,7 +1708,7 @@ class UppaalCLanguageParser(Parser):
                         self._token('forall')
                     with self._option():
                         self._token('exists')
-                    self._error('expecting one of: and exists false forall imply not or true')
+                    self._error('no available options')
             with self._option():
                 with self._choice():
                     with self._option():
@@ -1723,7 +1723,7 @@ class UppaalCLanguageParser(Parser):
                         self._token('return')
                     with self._option():
                         self._token('for')
-                    self._error('expecting one of: do else for if return while')
+                    self._error('no available options')
             with self._option():
                 with self._choice():
                     with self._option():
@@ -1760,7 +1760,7 @@ class UppaalCLanguageParser(Parser):
                         self._token('progress')
                     with self._option():
                         self._token('default')
-                    self._error('expecting one of: after_update assign before_update deadlock default guard invariant location priority process progress rate select state sync system trans')
+                    self._error('no available options')
             with self._option():
                 with self._choice():
                     with self._option():
@@ -1773,8 +1773,8 @@ class UppaalCLanguageParser(Parser):
                         self._token('break')
                     with self._option():
                         self._token('enum')
-                    self._error('expecting one of: break case continue enum switch')
-            self._error('expecting one of: after_update and assign before_update break broadcast case commit const continue deadlock default do else enum exists false for forall guard if imply init invariant location meta not or priority process progress rate return select state switch sync system trans true urgent while')
+                    self._error('no available options')
+            self._error('no available options')
 
     @tatsumasu()
     def _ReservedKeywords_(self):  # noqa
@@ -1793,7 +1793,7 @@ class UppaalCLanguageParser(Parser):
                         self._token('meta')
                     with self._option():
                         self._token('init')
-                    self._error('expecting one of: broadcast commit const init meta urgent')
+                    self._error('no available options')
             with self._option():
                 with self._choice():
                     with self._option():
@@ -1812,7 +1812,7 @@ class UppaalCLanguageParser(Parser):
                         self._token('forall')
                     with self._option():
                         self._token('exists')
-                    self._error('expecting one of: and exists false forall imply not or true')
+                    self._error('no available options')
             with self._option():
                 with self._choice():
                     with self._option():
@@ -1827,7 +1827,7 @@ class UppaalCLanguageParser(Parser):
                         self._token('return')
                     with self._option():
                         self._token('for')
-                    self._error('expecting one of: do else for if return while')
+                    self._error('no available options')
             with self._option():
                 with self._choice():
                     with self._option():
@@ -1864,7 +1864,7 @@ class UppaalCLanguageParser(Parser):
                         self._token('progress')
                     with self._option():
                         self._token('default')
-                    self._error('expecting one of: after_update assign before_update deadlock default guard invariant location priority process progress rate select state sync system trans')
+                    self._error('no available options')
             with self._option():
                 with self._choice():
                     with self._option():
@@ -1877,7 +1877,7 @@ class UppaalCLanguageParser(Parser):
                         self._token('break')
                     with self._option():
                         self._token('enum')
-                    self._error('expecting one of: break case continue enum switch')
+                    self._error('no available options')
             with self._option():
                 with self._choice():
                     with self._option():
@@ -1898,8 +1898,8 @@ class UppaalCLanguageParser(Parser):
                         self._token('void')
                     with self._option():
                         self._token('typedef')
-                    self._error('expecting one of: bool chan clock double int scalar struct typedef void')
-            self._error('expecting one of: after_update and assign before_update bool break broadcast case chan clock commit const continue deadlock default do double else enum exists false for forall guard if imply init int invariant location meta not or priority process progress rate return scalar select state struct switch sync system trans true typedef urgent void while')
+                    self._error('no available options')
+            self._error('no available options')
 
     @tatsumasu()
     def _Invariant_(self):  # noqa
@@ -1965,7 +1965,7 @@ class UppaalCLanguageParser(Parser):
                     self._token('!')
                 with self._option():
                     self._token('?')
-                self._error('expecting one of: ! ?')
+                self._error('no available options')
         self.name_last_node('op')
         self._constant('Sync')
         self.name_last_node('astType')
@@ -2158,7 +2158,7 @@ class UppaalCLanguageParser(Parser):
                 self._Value_()
             with self._option():
                 self._Variable_()
-            self._error('expecting one of: ! ( + - /[ \\t\\r\\n]*/ /[-+]?[0-9]*\\.[0-9]+([Ee][-+]?[0-9]+)?/ /[-+]?[0-9]+/ /[a-zA-Z_][a-zA-Z0-9_]*/ Boolean Double ID Integer Number QBracketExpr QDeadlock QExists QForAll QFuncCallExpr QSum QUnaryExpr Unary Value Variable _ deadlock exists false forall not sum true')
+            self._error('no available options')
 
     @tatsumasu()
     def _QExpression_(self):  # noqa
@@ -2169,7 +2169,7 @@ class UppaalCLanguageParser(Parser):
                 self._QBinaryExpr_()
             with self._option():
                 self._QBasicExpression_()
-            self._error('expecting one of: ! ( + - /[ \\t\\r\\n]*/ /[-+]?[0-9]*\\.[0-9]+([Ee][-+]?[0-9]+)?/ /[-+]?[0-9]+/ /[a-zA-Z_][a-zA-Z0-9_]*/ Boolean Double ID Integer Number QBasicExpression QBinaryExpr QBracketExpr QDeadlock QExists QForAll QFuncCallExpr QSum QTernaryExpr QUnaryExpr Unary Value Variable _ deadlock exists false forall not sum true')
+            self._error('no available options')
 
     @tatsumasu()
     def _Predicate_(self):  # noqa
@@ -2229,7 +2229,7 @@ class UppaalCLanguageParser(Parser):
                 self._PropExists_()
             with self._option():
                 self._PropLeadsTo_()
-            self._error('expecting one of: ! ( + - /[ \\t\\r\\n]*/ /[-+]?[0-9]*\\.[0-9]+([Ee][-+]?[0-9]+)?/ /[-+]?[0-9]+/ /[a-zA-Z_][a-zA-Z0-9_]*/ A Boolean Double E ID Integer Number Predicate PropAll PropExists PropLeadsTo QBasicExpression QBinaryExpr QBracketExpr QDeadlock QExists QExpression QForAll QFuncCallExpr QSum QTernaryExpr QUnaryExpr Unary Value Variable _ deadlock exists false forall not sum true')
+            self._error('no available options')
 
     @tatsumasu()
     def _PropGlobally_(self):  # noqa
@@ -2278,7 +2278,7 @@ class UppaalCLanguageParser(Parser):
                 self._PropFinally_()
             with self._option():
                 self._PropUntil_()
-            self._error('expecting one of: ! ( + - /[ \\t\\r\\n]*/ /[-+]?[0-9]*\\.[0-9]+([Ee][-+]?[0-9]+)?/ /[-+]?[0-9]+/ /[a-zA-Z_][a-zA-Z0-9_]*/ <> Boolean Double ID Integer Number Predicate PropFinally PropGlobally PropUntil QBasicExpression QBinaryExpr QBracketExpr QDeadlock QExists QExpression QForAll QFuncCallExpr QSum QTernaryExpr QUnaryExpr Unary Value Variable [] _ deadlock exists false forall not sum true')
+            self._error('no available options')
 
     @tatsumasu()
     def _SupInf_(self):  # noqa
@@ -2288,7 +2288,7 @@ class UppaalCLanguageParser(Parser):
                     self._token('inf')
                 with self._option():
                     self._token('sup')
-                self._error('expecting one of: inf sup')
+                self._error('no available options')
         self.name_last_node('type')
         with self._optional():
             self._token('{')
@@ -2320,7 +2320,7 @@ class UppaalCLanguageParser(Parser):
                         self._Clock_()
                     with self._option():
                         self._token('#')
-                    self._error('expecting one of: # Clock')
+                    self._error('no available options')
             self.name_last_node('var')
         self._token('<=')
         self._CONST_()
@@ -2406,7 +2406,7 @@ class UppaalCLanguageParser(Parser):
                     self._token('<=')
                 with self._option():
                     self._token('>=')
-                self._error('expecting one of: <= >=')
+                self._error('no available options')
         self.name_last_node('op')
         self._PROB_()
         self.name_last_node('probVal')
@@ -2427,7 +2427,7 @@ class UppaalCLanguageParser(Parser):
                     self._token('<=')
                 with self._option():
                     self._token('>=')
-                self._error('expecting one of: <= >=')
+                self._error('no available options')
         self.name_last_node('op')
         self._ProbEstimate_()
         self.name_last_node('right')
@@ -2454,7 +2454,7 @@ class UppaalCLanguageParser(Parser):
                     self._token('min')
                 with self._option():
                     self._token('max')
-                self._error('expecting one of: max min')
+                self._error('no available options')
         self.name_last_node('op')
         self._token(':')
         self._QExpression_()
@@ -2474,7 +2474,7 @@ class UppaalCLanguageParser(Parser):
                 self._PropPathQuant_()
             with self._option():
                 self._SupInf_()
-            self._error('expecting one of: ! ( + - /[ \\t\\r\\n]*/ /[-+]?[0-9]*\\.[0-9]+([Ee][-+]?[0-9]+)?/ /[-+]?[0-9]+/ /[a-zA-Z_][a-zA-Z0-9_]*/ A Boolean Double E ID Integer Number Predicate PropAll PropExists PropLeadsTo PropPathQuant QBasicExpression QBinaryExpr QBracketExpr QDeadlock QExists QExpression QForAll QFuncCallExpr QSum QTernaryExpr QUnaryExpr SupInf Unary Value Variable _ deadlock exists false forall inf not sum sup true')
+            self._error('no available options')
 
     @tatsumasu()
     def _UppaalSMCProp_(self):  # noqa
@@ -2491,7 +2491,7 @@ class UppaalCLanguageParser(Parser):
                 self._ProbEstimate_()
             with self._option():
                 self._ValueEstimate_()
-            self._error('expecting one of: E[ HypothesisTest Pr ProbCompare ProbEstimate Sim SimAcceptRuns ValueEstimate simulate')
+            self._error('no available options')
 
     @tatsumasu()
     def _UppaalProp_(self):  # noqa
@@ -2500,7 +2500,7 @@ class UppaalCLanguageParser(Parser):
                 self._UppaalTCTLProp_()
             with self._option():
                 self._UppaalSMCProp_()
-            self._error('expecting one of: ! ( + - /[ \\t\\r\\n]*/ /[-+]?[0-9]*\\.[0-9]+([Ee][-+]?[0-9]+)?/ /[-+]?[0-9]+/ /[a-zA-Z_][a-zA-Z0-9_]*/ A Boolean Double E E[ HypothesisTest ID Integer Number Pr Predicate ProbCompare ProbEstimate PropAll PropExists PropLeadsTo PropPathQuant QBasicExpression QBinaryExpr QBracketExpr QDeadlock QExists QExpression QForAll QFuncCallExpr QSum QTernaryExpr QUnaryExpr Sim SimAcceptRuns SupInf Unary UppaalSMCProp UppaalTCTLProp Value ValueEstimate Variable _ deadlock exists false forall inf not simulate sum sup true')
+            self._error('no available options')
 
     @tatsumasu()
     def _Clock_(self):  # noqa
@@ -2515,7 +2515,7 @@ class UppaalCLanguageParser(Parser):
         self._Value_()
 
 
-class UppaalCLanguageSemantics(object): # pragma: no cover
+class UppaalCLanguageSemantics(object):
     def _(self, ast):  # noqa
         return ast
 
@@ -2916,7 +2916,7 @@ class UppaalCLanguageSemantics(object): # pragma: no cover
         return ast
 
 
-def main(filename, start=None, **kwargs): # pragma: no cover
+def main(filename, start=None, **kwargs):
     if start is None:
         start = '_'
     if not filename or filename == '-':
@@ -2928,7 +2928,7 @@ def main(filename, start=None, **kwargs): # pragma: no cover
     return parser.parse(text, rule_name=start, filename=filename, **kwargs)
 
 
-if __name__ == '__main__': # pragma: no cover
+if __name__ == '__main__':
     import json
     from tatsu.util import asjson
 

@@ -4,9 +4,6 @@ from collections import OrderedDict
 
 import uppyyl_simulator.backend.models.base.automaton_network as automaton_network
 import uppyyl_simulator.backend.models.ta.ta as ta
-from uppyyl_simulator.backend.helper.helper import (
-    unique_id
-)
 from uppyyl_simulator.backend.models.ta.system_declaration import SystemDeclaration
 
 is_global_dbm = True
@@ -53,7 +50,7 @@ class System(automaton_network.System):
         self.templates[tmpl.id] = tmpl
         return tmpl
 
-    def new_template(self, name, id_=unique_id("tmpl")):
+    def new_template(self, name, id_=None):
         """Creates a new template object and adds it to the system.
 
         Args:
@@ -109,34 +106,6 @@ class System(automaton_network.System):
         if len(tmpls) >= index + 1:
             return tmpls[index]
         raise Exception(f'Template with index "{index}" not found in system.')
-    
-    def get_system_details(self, state):
-        """Get system details (number of location, edges, instance, and clocks).
-
-        Args:
-            state: The state for which the system details are obtained.
-
-        Returns:
-            The system details.
-        """
-        location_count = 0
-        edge_count = 0
-
-        instance_count = len(state.instance_data)
-        clock_count = state.dbm_state.clocks[1:]
-        for inst_name, tmpl_name in state.instance_data.items():
-            tmpl = self.get_template_by_name(tmpl_name)
-            location_count += len(tmpl.locations)
-            edge_count += len(tmpl.edges)
-
-        system_details = {
-            "locations": location_count,
-            "edges": edge_count,
-            "instances": instance_count,
-            "clocks": clock_count
-        }
-
-        return system_details
 
     def __str__(self):
         obj_str = super().__str__()

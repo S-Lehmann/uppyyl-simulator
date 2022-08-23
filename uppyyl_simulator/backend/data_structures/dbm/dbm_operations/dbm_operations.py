@@ -323,6 +323,14 @@ class Reset(DBMOperation):
         """
         return Reset(self.clock, self.val)
 
+    def uppaal_string(self):
+        """Generates a Uppaal-compatible string representation for a reset.
+
+        Returns:
+            The Uppaal-compatible reset string.
+        """
+        return f'{self.clock} = {self.val}'
+
     def __str__(self):
         return f'Reset({self.clock} = {self.val})'
 
@@ -381,6 +389,23 @@ class Constraint(DBMOperation):  # "<=" constraint
             The copied Constraint instance.
         """
         return Constraint(self.clock1, self.clock2, self.rel, self.val)
+
+    def uppaal_string(self):
+        """Generates a Uppaal-compatible string representation for a constraint.
+
+        Returns:
+            The Uppaal-compatible constraint string.
+        """
+        if (self.clock1 is not None) and (self.clock1 != "T0_REF"):
+            if (self.clock2 is not None) and (self.clock2 != "T0_REF"):
+                return f'{self.clock1} - {self.clock2} {self.rel} {self.val}'
+            else:
+                return f'{self.clock1} {self.rel} {self.val}'
+        else:
+            if (self.clock2 is not None) and (self.clock2 != "T0_REF"):
+                return f'{self.clock2} {switch_relation(self.rel)} {-self.val}'
+            else:
+                raise Exception("At least one clock must be defined in a constraint.")
 
     def __str__(self):
         clock1 = self.clock1 if self.clock1 else "T0_REF"

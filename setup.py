@@ -8,7 +8,7 @@ from setuptools import setup
 
 version = re.search(
     r'^__version__\s*=\s*"(.*)"',
-    open("uppyyl_simulator/uppyyl_simulator.py").read(),
+    open("uppyyl_simulator/version.py").read(),
     re.M,
 ).group(1)
 
@@ -20,8 +20,8 @@ setup(
     packages=["uppyyl_simulator"],
     entry_points={
         "console_scripts": [
-            "uppyyl_simulator = uppyyl_simulator.uppyyl_simulator:main",
-            "uppyyl-simulator = uppyyl_simulator.uppyyl_simulator:main",
+            "uppyyl_simulator = uppyyl_simulator.__main__:main",
+            "uppyyl-simulator = uppyyl_simulator.__main__:main",
         ]
     },
     version=version,

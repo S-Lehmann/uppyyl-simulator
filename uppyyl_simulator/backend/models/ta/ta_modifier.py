@@ -115,7 +115,7 @@ class LocationModifier:
         """
         for i in range(0, len(loc.invariants)):
             inv = loc.invariants[i]
-            inv.ast = apply_funcs_to_ast(inv.ast, adaptions)
+            inv.ast = apply_funcs_to_ast(inv.ast, adaptions)[0]
             inv.update_text()
 
 
@@ -140,29 +140,30 @@ class EdgeModifier:
         """
         for i in range(0, len(edge.clock_guards)):
             grd = edge.clock_guards[i]
-            grd.ast = apply_funcs_to_ast(grd.ast, adaptions)
+            grd.ast = apply_funcs_to_ast(grd.ast, adaptions)[0]
             grd.update_text()
 
         for i in range(0, len(edge.variable_guards)):
             grd = edge.variable_guards[i]
-            grd.ast = apply_funcs_to_ast(grd.ast, adaptions)
+            grd.ast = apply_funcs_to_ast(grd.ast, adaptions)[0]
             grd.update_text()
 
         for i in range(0, len(edge.updates)):
             updt = edge.updates[i]
-            updt.ast = apply_funcs_to_ast(updt.ast, adaptions)
+            updt.ast = apply_funcs_to_ast(updt.ast, adaptions)[0]
             updt.update_text()
 
         for i in range(0, len(edge.resets)):
             rst = edge.resets[i]
-            rst.ast = apply_funcs_to_ast(rst.ast, adaptions)
+            rst.ast = apply_funcs_to_ast(rst.ast, adaptions)[0]
             rst.update_text()
 
         sync = edge.sync
-        sync.ast = apply_funcs_to_ast(sync.ast, adaptions)
-        sync.update_text()
+        if sync is not None:
+            sync.ast = apply_funcs_to_ast(sync.ast, adaptions)[0]
+            sync.update_text()
 
         for i in range(0, len(edge.selects)):
             sel = edge.selects[i]
-            sel.ast = apply_funcs_to_ast(sel.ast, adaptions)
+            sel.ast = apply_funcs_to_ast(sel.ast, adaptions)[0]
             sel.update_text()
