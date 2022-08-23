@@ -38,7 +38,7 @@ setup(
         "pytest==7.1.2",
         "pytest-subtests==0.8.0",
         "TatSu==5.6.1",
-        "lxml==4.8.0",
+        "lxml==4.9.1",
         "colorama==0.4.4",
         "coverage==6.4",
     ],
